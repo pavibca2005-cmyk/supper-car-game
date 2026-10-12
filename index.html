@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CYBER PULSE: Neon Highway 3D Racing</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts: Orbitron & Rajdhani for futuristic racing telemetry -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <!-- Canvas container -->
+  <div id="game-container"></div>
+
+  <!-- Nitro screen distortion / speed lines overlay -->
+  <div id="speed-fx" class="speed-fx-overlay"></div>
+  <div id="damage-flash" class="damage-flash-overlay"></div>
+
+  <!-- HUD Overlay -->
+  <div id="hud" class="hud-container hidden">
+    <!-- Top Bar -->
+    <header class="hud-top-bar">
+      <div class="hud-chip score-chip">
+        <span class="chip-label">SCORE</span>
+        <span id="score-display" class="chip-value">000000</span>
+      </div>
+
+      <div class="hud-center-title">
+        <span class="neon-badge">NEON APEX 3D</span>
+      </div>
+
+      <div class="hud-chip distance-chip">
+        <span class="chip-label">DISTANCE</span>
+        <span id="distance-display" class="chip-value">0.0 KM</span>
+      </div>
+
+      <div class="hud-chip sound-toggle-chip" id="sound-toggle-btn" title="Toggle Sound">
+        <span id="sound-icon">🔊</span>
+      </div>
+
+      <button id="pause-btn" class="hud-btn-icon" aria-label="Pause Game">
+        <span>❚❚</span>
+      </button>
+    </header>
+
+    <!-- Speedometer & Nitro Cluster (Bottom Left & Right) -->
+    <div class="hud-bottom-telemetry">
+      <!-- Speedometer Cluster -->
+      <div class="telemetry-speed-cluster">
+        <div class="speed-radial">
+          <svg class="speed-gauge-svg" viewBox="0 0 120 120">
+            <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+            <circle id="speed-gauge-bar" class="gauge-bar" cx="60" cy="60" r="50"></circle>
+          </svg>
+          <div class="speed-number-wrapper">
+            <span id="speed-display" class="speed-num">0</span>
+            <span class="speed-unit">KM/H</span>
+          </div>
+        </div>
+        <div class="gear-status">GEAR <span id="gear-display">1</span></div>
+      </div>
+
+      <!-- Nitro Tank Cluster -->
+      <div class="telemetry-nitro-cluster">
+        <div class="nitro-label-row">
+          <span class="nitro-title">NITRO BOOST</span>
+          <span id="nitro-percent" class="nitro-pct">100%</span>
+        </div>
+        <div class="nitro-bar-container">
+          <div id="nitro-bar-fill" class="nitro-bar-fill"></div>
+          <div class="nitro-glow"></div>
+        </div>
+        <div class="nitro-tip">[SPACE] or [TAP NITRO]</div>
+      </div>
+    </div>
+
+    <!-- On-Screen Mobile Touch Controls -->
+    <div id="touch-controls" class="touch-controls">
+      <div class="touch-steer-zone">
+        <button id="touch-left" class="touch-btn steer-btn" aria-label="Steer Left">◀</button>
+        <button id="touch-right" class="touch-btn steer-btn" aria-label="Steer Right">▶</button>
+      </div>
+      <div class="touch-pedal-zone">
+        <button id="touch-brake" class="touch-btn brake-btn" aria-label="Brake">BRAKE</button>
+        <button id="touch-nitro" class="touch-btn nitro-btn" aria-label="Nitro">NITRO</button>
+        <button id="touch-gas" class="touch-btn gas-btn" aria-label="Accelerate">GAS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Countdown Overlay -->
+  <div id="countdown-overlay" class="countdown-overlay hidden">
+    <div id="countdown-text" class="countdown-text">3</div>
+  </div>
+
+  <!-- Start Menu Modal -->
+  <div id="start-menu" class="menu-modal">
+    <div class="menu-card glow-box">
+      <div class="brand-tag">NEXT-GEN ARCADE EXPERIENCE</div>
+      <h1 class="game-title">CYBER<span class="neon-text">PULSE</span></h1>
+      <p class="subtitle">HIGHWAY OVERDRIVE</p>
+
+      <div class="instructions-panel">
+        <div class="control-grid">
+          <div class="control-card">
+            <div class="key-badge">W / ↑</div>
+            <span>Accelerate</span>
+          </div>
+          <div class="control-card">
+            <div class="key-badge">S / ↓</div>
+            <span>Brake / Reverse</span>
+          </div>
+          <div class="control-card">
+            <div class="key-badge">A / D / ← →</div>
+            <span>Steer Lane</span>
+          </div>
+          <div class="control-card">
+            <div class="key-badge">SPACE / SHIFT</div>
+            <span>Blue Nitro Boost</span>
+          </div>
+        </div>
+        <p class="traffic-warning">⚡ Weave through traffic, avoid rival hypercars, and stay at maximum velocity!</p>
+      </div>
+
+      <button id="start-btn" class="menu-action-btn pulse-glow">
+        <span class="btn-text">ENGAGE IGNITION</span>
+        <span class="btn-glitch"></span>
+      </button>
+
+      <div class="credits">Built with Three.js & Web Audio API • 60FPS Accelerated</div>
+    </div>
+  </div>
+
+  <!-- Pause Menu Modal -->
+  <div id="pause-menu" class="menu-modal hidden">
+    <div class="menu-card pause-card">
+      <h2 class="menu-heading">RACE SUSPENDED</h2>
+      <p class="menu-desc">Engines idle. Take a breath or rejoin the highway.</p>
+      <div class="menu-actions">
+        <button id="resume-btn" class="menu-action-btn small-btn">RESUME</button>
+        <button id="pause-restart-btn" class="menu-secondary-btn">RESTART</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen Modal -->
+  <div id="game-over-menu" class="menu-modal hidden">
+    <div class="menu-card wreck-card glow-red">
+      <div class="wreck-tag">CRITICAL CRASH DETECTED</div>
+      <h2 class="game-over-title">TOTALED</h2>
+      
+      <div class="stats-summary-grid">
+        <div class="stat-box">
+          <span class="stat-title">FINAL SCORE</span>
+          <span id="final-score" class="stat-num">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">DISTANCE</span>
+          <span id="final-dist" class="stat-num">0.0 KM</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">TOP SPEED</span>
+          <span id="final-top-speed" class="stat-num">0 KM/H</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">NEAR MISSES</span>
+          <span id="final-misses" class="stat-num">0</span>
+        </div>
+      </div>
+
+      <div class="menu-actions">
+        <button id="restart-btn" class="menu-action-btn pulse-glow">
+          <span class="btn-text">RE-ENTER HIGHWAY</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
